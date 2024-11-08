@@ -2,6 +2,7 @@ import User from "../models/Usermodel.js"
 import bcryptjs from "bcryptjs"
 import { ErrorHandler } from "../middleware/error.js"
 import { createToken } from "../utils/createToken.js"
+import catchAsyncError from "../middleware/catchAsyncError.js"
 
 export const signUp = async (req, res, next) => {
     const { username, email, password } = req.body
@@ -20,7 +21,7 @@ export const signUp = async (req, res, next) => {
     const newUser = new User({
         username,
         email,
-        password: hashedPassword
+        password: hashedPassword,
     })
 
     try {
@@ -54,7 +55,7 @@ export const signIn = async (req, res, next) => {
             return next(ErrorHandler(404, "Invalid Email or Password"));
         }
 
-        const token = createToken(validUser.email, validUser._id);
+        const token = createToken(validUser.email, validUser._id, validUser.role);
 
         console.log("Generated Token:", token);
 
@@ -146,3 +147,20 @@ export const updateUserDetails = async (req, res, next) => {
         next(error)
     }
 }
+
+
+
+
+export const getAllUsers = catchAsyncError(async (req, res, next) => {
+
+    const users = await User.find();
+
+    if (users.length === 0) {
+        return next(new ErrorHandler("No User Found", 400))
+    }
+
+    res.status(200).json({
+        success: true,
+        users
+    })
+})
