@@ -1,11 +1,6 @@
-import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken"
+const maxAge = 3 * 24 * 60 * 60 * 1000; 
 
-const generateToken = (user) => {
-    return jwt.sign(
-        { id: user._id, isAdmin: user.isAdmin },
-        process.env.JWT_SECRET,
-        { expiresIn: '1d' }
-    );
+export const createToken = (email, userId) => {
+    return jwt.sign({ email, userId }, process.env.JWT_SECRET, { expiresIn: maxAge });
 };
-
-export default generateToken;
