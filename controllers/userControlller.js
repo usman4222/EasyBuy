@@ -68,3 +68,17 @@ export const signIn = async (req, res, next) => {
     }
 };
 
+
+
+export const signOut = async (req, res, next) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+        });
+
+        return res.status(200).json({ message: "User signed out successfully." });
+    } catch (error) {
+        next(error);
+    }
+};
