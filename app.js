@@ -1,6 +1,7 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import userRoutes from './routes/userRoute.js';
 
 const app = express();
 
@@ -10,4 +11,7 @@ dotenv.config();
 app.use(cors()); 
 app.use(express.json());  
 
-module.exports = app;
+// Routes
+app.use('/api/auth', userRoutes);
+
+export default app;
