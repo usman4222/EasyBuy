@@ -149,3 +149,19 @@ export const deleteProduct = catchAsyncError(async (req, res, next) => {
         message: "Product deleted successfully"
     });
 });
+
+
+export const getProductDetails = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        product
+    });
+});
