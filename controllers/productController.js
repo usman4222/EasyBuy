@@ -25,7 +25,7 @@ export const createProduct = catchAsyncError(async (req, res, next) => {
         stock,
         numOfReviews: numOfReviews || 0,
         reviews: reviews || [],
-        user: req.user.id,  
+        user: req.user.id,
     });
 
     try {
@@ -50,13 +50,13 @@ export const getProducts = async (req, res, next) => {
 
         const apiFeaturesForCount = new ApiFeatures(Product.find(), req.query)
             .search()
-            .filter(); 
+            .filter();
 
         const filteredProductsCount = await apiFeaturesForCount.query.countDocuments();
 
         const apiFeatures = new ApiFeatures(Product.find(), req.query)
             .search()
-            .filter() 
+            .filter()
             .pagination(resultPerPage);
 
         const products = await apiFeatures.query;
@@ -76,3 +76,24 @@ export const getProducts = async (req, res, next) => {
 
 
 
+export const getAdminProducts = async (req, res, next) => {
+    try {
+
+        const products = await Product.find({ user: req.user.id });
+
+        if (!products || products.length === 0) {
+            // return res.status(404).json({
+            //     success: false,
+            //     message: "No products found for this admin."
+            // });
+            return next(new ErrorHandler("No products found for this admin.", 40));
+        }
+
+        res.status(200).json({
+            success: true,
+            products
+        });
+    } catch (error) {
+        next(error); 
+    }
+};
