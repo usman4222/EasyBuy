@@ -1,8 +1,8 @@
 import User from "../models/Usermodel.js"
 import bcryptjs from "bcryptjs"
-import { ErrorHandler } from "../middleware/error.js"
 import { createToken } from "../utils/createToken.js"
 import catchAsyncError from "../middleware/catchAsyncError.js"
+import ErrorHandler from "../middleware/error.js"
 
 export const signUp = async (req, res, next) => {
     const { username, email, password } = req.body
@@ -63,8 +63,8 @@ export const signIn = async (req, res, next) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', 
-            maxAge: 24 * 60 * 60 * 1000 
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 24 * 60 * 60 * 1000
         });
 
         res.status(200).json({ token, user: rest });
@@ -111,7 +111,7 @@ export const updateUserDetails = async (req, res, next) => {
         console.log(`Requested user ID: ${req.params.userId}`);
         return next(ErrorHandler(403, "You are not allowed to update this user"));
     }
-    
+
     if (req.body.password) {
         if (req.body.password.length < 6) {
             return next(ErrorHandler(400, "Password must be more than 6 characters"))
@@ -159,8 +159,64 @@ export const getAllUsers = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("No User Found", 400))
     }
 
+    const usersWithoutPassword = users.map(({ _doc: { password, ...rest } }) => rest);
+
     res.status(200).json({
         success: true,
-        users
-    })
+        users: usersWithoutPassword
+    });
 })
+
+
+export const getSingleUser = async (req, res, next) => {
+
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+        return next(new ErrorHandler(`User does not Exist with this ID: ${req.params.userId}`, 404))
+    }
+
+    const { password, ...rest } = user._doc
+
+    res.status(200).json({
+        success: true,
+        user: rest
+    })
+}
+
+
+
+export const updateUserRole = catchAsyncError(async (req, res, next) => {
+    const { role } = req.body;
+    const userId = req.params.userId;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new ErrorHandler(`User not found with ID: ${userId}`, 404));
+    }
+
+    user.role = role;
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: "User role updated successfully",
+        user
+    });
+});
+
+
+export const deleteUser = async (req, res, next) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.userId);
+
+        if (!user) {
+            return next(new ErrorHandler(`No User exists with this ID: ${req.params.userId}`, 404));
+        }
+
+        res.status(200).json("User deleted successfuly")
+    } catch (error) {
+        next(error)
+    }
+}

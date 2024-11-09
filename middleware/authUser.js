@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { ErrorHandler } from "./error.js";
+import  ErrorHandler  from "./error.js";
 
 export const isAuthenticatedUser = (req, res, next) => {
   const token = req.cookies.token;
