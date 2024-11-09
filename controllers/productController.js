@@ -97,3 +97,47 @@ export const getAdminProducts = async (req, res, next) => {
         next(error); 
     }
 };
+
+
+
+export const updateProduct = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    const { name, description, price, category, stock, image } = req.body;
+
+    // Find the product by ID
+    const product = await Product.findById(id);
+
+    // Check if product exists
+    if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+    }
+
+    // Check if the logged-in user is the creator and an admin
+    if (product.user.toString() !== req.user.id.toString() || req.user.role !== "admin") {
+        return next(new ErrorHandler("You are not authorized to update this product", 403));
+    }
+
+    // Update product fields
+    if (name) product.name = name;
+    if (description) product.description = description;
+    if (price) product.price = price;
+    if (category) product.category = category;
+    if (stock !== undefined) product.stock = stock;
+    if (image) product.image = image;
+
+
+    // Generate a new slug if the name or category is updated
+    if (name || category) {
+        const slugBase = `${name || product.name}-${category || product.category}`.toLowerCase().replace(/[^a-zA-Z0-9-]/g, '');
+        product.slug = `${slugBase}-${Math.random().toString(36).substr(2, 6)}`;
+    }
+
+    // Save the updated product
+    const updatedProduct = await product.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Product updated successfully",
+        product: updatedProduct,
+    });
+});
