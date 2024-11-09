@@ -20,7 +20,7 @@ export const isAuthenticatedUser = (req, res, next) => {
       return next(new  ErrorHandler(401, "Invalid token data"));
     }
 
-    req.user = { id: decoded.userId, email: decoded.email, role: decoded.role };
+    req.user = { _id: decoded.userId, email: decoded.email, role: decoded.role };
 
     next();
   }); 
